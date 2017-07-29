@@ -1,4 +1,4 @@
-
+#include <stdio.h>
 #include <stdlib.h>
 #include <GL/glut.h>
 
@@ -16,7 +16,10 @@ float obsX = 10.0,
 
 int x_ini, y_ini, bot;
 float anguloMartelo =45 ;
-int clique=0;
+int clique=-1;
+int passo = 10;
+int passo2 = 25;
+bool flagBatida = false;
 GLfloat fAspect;
 
 //-----------------------------------------------------------------------
@@ -69,25 +72,28 @@ void desenhaCenarioSolid()
    //cepo de madeira
     glPushMatrix();
     	glColor3f( 1, 1, 1 );
-        glTranslatef( 0.0, -3.1, 0.0 );
+        glTranslatef( 0.0, -10, 0.0 );
         glScalef( 0.10, 0.5, 0.10 );
         glutSolidCube(50);
     glPopMatrix();
     //martelo
     glPushMatrix();
+
+    	glTranslatef(40,24,0.1);
 	    glRotatef(anguloMartelo,0,0,1);
+	    glTranslatef(0,15,0);
 
 	    glPushMatrix();
-	    	glColor3f( 0.9, 0.2, 0.2 );
-	        glTranslatef( 62.0, 24.0, 0.10 );
-	        glScalef( 0.80, 0.5, 0.1 );
+	    	glColor3f( 0.5, 0.5, 0.5 );
+	        glTranslatef( 0.0, 24.0, 0.10 );
+	        glScalef( 0.80, 0.5, 0.5 );
 	        glutSolidCube(50);
 	    glPopMatrix();
 
 	    glPushMatrix();
-	    	glColor3f( 1.0,1.0, 1.0 );
-	        glTranslatef( 62.0, 0.0, 0.10 );
-	        glScalef( 0.10, 0.5, 0.1 );
+	    	glColor3f( 1.0,0.7, 0.2 );
+	        glTranslatef( 0.0, 0.0, 0.10 );
+	        glScalef( 0.10, 1.8, 0.1 );
 	        glutSolidCube(50);
 	    glPopMatrix();
     glPopMatrix();
@@ -202,6 +208,9 @@ void mouse( int button, int state, int x, int y )
 {	
 	if( bot == GLUT_LEFT_BUTTON )
     {	
+    	if(anguloMartelo == 45) clique = 0;
+    	if(anguloMartelo == 90) clique = 1;
+    	/*
     	if(clique==0){
     		anguloMartelo=90;
     		clique=1;
@@ -209,6 +218,7 @@ void mouse( int button, int state, int x, int y )
     		anguloMartelo=45;
     		clique=0;
     	}
+    	*/
     	glutPostRedisplay();
     	
     }
@@ -230,6 +240,38 @@ void mouse( int button, int state, int x, int y )
     }
 }
 //------------------------------------------------------------------------------
+void Timer(int value){
+
+	if (value == 0){
+		if(clique == 0){
+			anguloMartelo-=passo;
+			if(anguloMartelo <= 10){
+				anguloMartelo = 10;
+				flagBatida = true;	
+			}
+			if(flagBatida == true){ 
+				if(anguloMartelo>=10  && anguloMartelo <90){
+					anguloMartelo+=passo2;
+					passo2+=passo;
+				}
+				if(anguloMartelo > 90) anguloMartelo = 90;
+			}
+		}
+		else if(clique == 1){
+
+			if(anguloMartelo <= 90) anguloMartelo-=passo;
+			if(anguloMartelo < 45) anguloMartelo = 45;
+			flagBatida = false;
+			passo2 = 25;
+
+		}
+
+	glutTimerFunc(100,Timer, 0);
+	}
+
+	glutPostRedisplay();
+}
+//------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
     glutInit( &argc, argv );
@@ -243,6 +285,7 @@ int main(int argc, char *argv[])
 	glutKeyboardFunc( keyboard );
     glutMouseFunc( mouse );
     glutMotionFunc( motion );
+    glutTimerFunc(100,Timer,0);
 
 	Inicializa();
 

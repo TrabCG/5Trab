@@ -1,0 +1,19 @@
+CC = g++
+Glut = -lGL -lGLU -lglut
+#coisasTiny = tinystr.cpp tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
+
+all: 
+	$(CC) -w -O4 -c ultimoFuckingTrab.cpp
+	$(CC) -g -O4 -s trabalhocg.o $(Glut) -lm -o trabalhocg
+	./trabalhocg
+
+run:
+	./trabalhocg
+
+clean:
+	rm *.o
+	rm trabalhocg
+	reset
+
+
+

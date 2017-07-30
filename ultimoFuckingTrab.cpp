@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <GL/glut.h>
+#include <math.h>
 
 bool eixos = true,
      wire = !true;
@@ -10,7 +11,7 @@ float rotX = 0.0,
       rotX_ini, rotY_ini;
 
 float obsX = 10.0,
-      obsY = 20.0,
+      obsY = 50.0,
       obsZ = 150.0,
       obsX_ini, obsY_ini, obsZ_ini;
 
@@ -19,83 +20,89 @@ float anguloMartelo =45 ;
 int clique=-1;
 int passo = 10;
 int passo2 = 25;
-bool flagBatida = false;
+bool flagBatida = false, ldifusa=false,ambiente=false;
 GLfloat fAspect;
+GLUquadricObj *cepo;
 
 //-----------------------------------------------------------------------
-void desenhaEixos()
-{
-    glLineWidth( 2.0f );
-
-    glBegin( GL_LINES );
-    	glColor3f ( 1.0f, 0.0f, 0.0f );
-    	glVertex3f( 0.0f, 0.0f, 0.0f );
-    	glVertex3f( 2.0f, 0.0f, 0.0f );
-
-    	glColor3f ( 0.0f, 1.0f, 0.0f );
-    	glVertex3f( 0.0f, 0.0f, 0.0f );
-    	glVertex3f( 0.0f, 2.0f, 0.0f );
-
-    	glColor3f ( 0.0f, 0.0f, 1.0f );
-    	glVertex3f( 0.0f, 0.0f, 0.0f );
-    	glVertex3f( 0.0f, 0.0f, 2.0f );
-   	glEnd();
+void desenha_circulo(float r){ //desenha centro na origem
+    int NUM_LINHAS = 360;
+    glBegin(GL_POLYGON);
+        for(int i = 0; i < NUM_LINHAS; i++){
+            float ang = i * M_PI / 180.0;
+            glVertex3f(r * cos(ang), r * sin(ang), 0.0);
+        }
+    glEnd();
 }
-//------------------------------------------------------------------------------
-void desenhaCenarioWire()
-{
-    
-    //cepo de madeira
+void desenha_cilindro(float raio, float altura, float angulo){
+    //desenha o cilindro com o raio especifico e o centro geometrico localizado em:
+    //altura/2.0  na direção positiva do eixo Z
     glPushMatrix();
-     	glColor3f( 1, 1, 1 );
-        //glTranslatef( 22.0, -15.0, -22.0 );
-        glScalef( 0.10, 0.5, 0.10 );
-        glutWireCube(50);
+        glRotatef(angulo, 1, 0,0);
+        //glScalef(t.ex, t.ey, t.ez);
+        gluCylinder(cepo,raio, raio, altura, 32, 32);
+        //"tampa" inferior
+        desenha_circulo(raio);
+        //"Tampa" superior
+        glPushMatrix();
+            glTranslatef(0.0, 0.0, 0);
+            desenha_circulo(raio);
+        glPopMatrix();
     glPopMatrix();
-      glPushMatrix();
- 		glColor3f( 1, 1,1 );
-        glTranslatef( 22.0, -15.0, -22.0 );
-        glScalef( 0.10, 0.5, 0.10 );
-        glutWireCube(50);
-    glPopMatrix();
-      glPushMatrix();
- 		glColor3f( 1, 1,1 );
-        glTranslatef( 30.0, -25.0, -32.0 );
-        glScalef( 0.10, 0.5, 0.10 );
-        glutWireCube(50);
-    glPopMatrix();
-
 }
 //------------------------------------------------------------------------------
+
 void desenhaCenarioSolid()
 {
    //cepo de madeira
     glPushMatrix();
-    	glColor3f( 1, 1, 1 );
-        glTranslatef( 0.0, -10, 0.0 );
-        glScalef( 0.10, 0.5, 0.10 );
-        glutSolidCube(50);
+    	glColor3f( 0.5, 0.2, 0.13 );
+        glTranslatef( 0.0, -10.0, 0.0 );
+        glScalef( 0.30, 0.2, 0.10 );
+       // glutSolidCube(50);
+        //glRotatef(90, 1,0 , 0);
+        //gluCylinder(cepo, 80, 80, 50, 42, 42);
+        desenha_cilindro(50, 50, 90);
     glPopMatrix();
+    //prego
+    glPushMatrix();
+        glColor3f( 0.3, 0.35, 0.5 );
+        glTranslatef( 0.0, -5.0, 0.0 );
+        glScalef( 0.10, 1.6, 0.10 );
+        glutSolidCube(10);
+        //glRotatef(90, 1,0 , 0);
+        //gluCylinder(cepo, 80, 80, 50, 42, 42);
+    glPopMatrix();
+    //corpo
+      /* glPushMatrix();
+            glColor3f( 0.5, 0.5, 0.5 );
+            glRotatef(140,0,0,1);
+            glTranslatef( -30.0, -63.0, 0.10 );
+            glScalef( 0.1, 0.85, 0.1 );
+            glutSolidCube(50);
+        glPopMatrix();*/
     //martelo
     glPushMatrix();
-
     	glTranslatef(40,24,0.1);
 	    glRotatef(anguloMartelo,0,0,1);
 	    glTranslatef(0,15,0);
 
+        glPushMatrix();
+            glColor3f( 1.0,0.98, 0.80 );
+            glTranslatef( 0.0, 0.0, 0.10 );
+            glScalef( 0.10, 1.8, 0.1 );
+            glutSolidCube(50);
+        glPopMatrix();
 	    glPushMatrix();
-	    	glColor3f( 0.5, 0.5, 0.5 );
+	    	glColor3f( 1.0, 0.0, 0.0 );
 	        glTranslatef( 0.0, 24.0, 0.10 );
 	        glScalef( 0.80, 0.5, 0.5 );
 	        glutSolidCube(50);
+           // glRotatef(-45, 0, -1, 0);
+            //gluCylinder(cepo, 20, 20, 50, 42, 42);
 	    glPopMatrix();
 
-	    glPushMatrix();
-	    	glColor3f( 1.0,0.7, 0.2 );
-	        glTranslatef( 0.0, 0.0, 0.10 );
-	        glScalef( 0.10, 1.8, 0.1 );
-	        glutSolidCube(50);
-	    glPopMatrix();
+	    
     glPopMatrix();
 
     
@@ -105,12 +112,9 @@ void display(void)
 {
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if( eixos ) desenhaEixos();
+    //if( eixos ) desenhaEixos();
 
-	if( wire )
-       desenhaCenarioWire();
-    else
-       desenhaCenarioSolid();
+    desenhaCenarioSolid();
 
 	glutSwapBuffers();
 }
@@ -126,7 +130,7 @@ void projecao(void)
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
 
-	gluLookAt( obsX,obsY,obsZ, 10,20,0, 0,1,0 );
+	gluLookAt( obsX,obsY,obsZ, 10,50,0, 0,1,0 );
 }
 
 //------------------------------------------------------------------------------
@@ -142,35 +146,56 @@ void reshape( GLsizei w, GLsizei h )
 //------------------------------------------------------------------------------
 void keyboard( unsigned char key, int x, int y )
 {
-    /*switch( key )
+    switch( key )
     {
         case 27: exit(0); break;
 
-        case 'a':
-        case 'A': eixos = !eixos;
-        	      break;
+        case 'q':
+        case 'Q':
+            if(ldifusa==0){
+                glEnable(GL_LIGHT0);
+                GLfloat difusa[] = {1.0, 1.0, 1.0, 1.0};
+                glLightfv(GL_LIGHT0, GL_DIFFUSE, difusa);
+                ldifusa = !ldifusa;
+            }else{
+                 glDisable(GL_LIGHT0);
+                 ldifusa = !ldifusa;
+             }
+
+        break;
 
         case 'w':
-        case 'W': wire = !wire;
-        	      break;
-    }*/
+        case 'W':
+            if(ambiente==0){
+                glEnable(GL_LIGHT1);
+                GLfloat ambient[] = {0.5, 0.5, 0.5, 1.0};
+                glLightfv(GL_LIGHT1, GL_AMBIENT, ambient);
+                ambiente =!ambiente;
+            }else{ 
+                glDisable(GL_LIGHT1);
+                ambiente =!ambiente;
+            }
+        break;
+    }
     glutPostRedisplay();
 }
 
 //------------------------------------------------------------------------------
-void Inicializa (void)
-{
 
-	GLfloat ambient[]= {0.0, 1.0,1.0,1.0};
-	GLfloat difusa[]={0.0,1.0,0.0,1.0};
-	GLfloat posicao[]={0.0,50.0,0.0,0.0};
+void Inicializa (void)
+{   
+
+    printf("\n Para acender a luz difusa aperte Q \n");
+    printf("\n Para acender a luz ambiente aperte W \n");
+    cepo = gluNewQuadric();
+    GLfloat posicao[]={0.0,50.0,0.0,0.0};
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, difusa);
 	glLightfv(GL_LIGHT0,GL_POSITION,posicao);
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_COLOR_MATERIAL);
+	//glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
+    glEnable(GL_LIGHTING);
+    //glEnable(GL_LIGHT0);
+    //glEnable(GL_LIGHT1);
+    glEnable(GL_COLOR_MATERIAL);
 	glEnable( GL_DEPTH_TEST );
 }
 //-----------------------------------------------------------------------
@@ -277,7 +302,7 @@ int main(int argc, char *argv[])
     glutInit( &argc, argv );
 	glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize( 450, 450 );
-	glutCreateWindow("Trabalho Final");
+	glutCreateWindow("Trabalho Final(Minecraft)");
 
 	glutDisplayFunc( display );
 	glutMouseFunc( mouse );

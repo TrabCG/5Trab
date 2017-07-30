@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <GL/glut.h>
 #include <math.h>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alut.h>
+#include "OpenAL.h"
 
 bool eixos = true,
      wire = !true;
@@ -20,14 +24,13 @@ float anguloMartelo =45 ;
 int clique=-1;
 int passo = 10;
 int passo2 = 25;
-bool flagBatida = false, ldifusa=false,ambiente=false;
+bool flagBatida = false, ldifusa=false,ambiente=false,som=false;
 GLfloat fAspect;
 GLUquadricObj *cepo;
-int impacto = 0;
-int explosion = 0;
+int impacto = 5;
+int explosion = 2;
 int passoExp = 1;
 bool batida = false;
-bool dissipou = true;
 float fade = 1;
 //-----------------------------------------------------------------------
 void desenha_circulo(float r){ //desenha centro na origem
@@ -44,13 +47,11 @@ void desenha_cilindro(float raio, float altura, float angulo){
     //altura/2.0  na direção positiva do eixo Z
     glPushMatrix();
         glRotatef(angulo, 1, 0,0);
-        //glScalef(t.ex, t.ey, t.ez);
         gluCylinder(cepo,raio, raio, altura, 32, 32);
         //"tampa" inferior
         desenha_circulo(raio);
         //"Tampa" superior
         glPushMatrix();
-            glTranslatef(0.0, 0.0, 0);
             desenha_circulo(raio);
         glPopMatrix();
     glPopMatrix();
@@ -60,7 +61,7 @@ void desenhaImpacto(){
     glPushMatrix();
     	glColor4f(1.0,0.5,0.0,fade);
     	glRotatef(90,1,0,0);
-    	glTranslatef(0.0,-5.0,0.0);
+    	glTranslatef(0.0,0.0,0.0);
     	glutSolidTorus(explosion,impacto,50,50);
     glPopMatrix();
 }
@@ -72,18 +73,29 @@ void desenhaCenarioSolid()
     glPushMatrix();
     	glColor3f( 0.5, 0.2, 0.13 );
         glTranslatef( 0.0, -10.0, 0.0 );
-        glScalef( 0.30, 0.2, 0.10 );
+        glScalef( 0.52, 0.52, 0.50 );
        // glutSolidCube(50);
         //glRotatef(90, 1,0 , 0);
         //gluCylinder(cepo, 80, 80, 50, 42, 42);
-        desenha_cilindro(50, 50, 90);
+        desenha_cilindro(20, 20, 90);
     glPopMatrix();
     //prego
     glPushMatrix();
         glColor3f( 0.3, 0.35, 0.5 );
-        glTranslatef( 0.0, -5.0, 0.0 );
+        glTranslatef( 0.0, 5.0, 0.0 );
         glScalef( 0.10, 1.6, 0.10 );
-        glutSolidCube(10);
+        //glutSolidCube(10);
+        desenha_cilindro(5, 10, 90);
+        //glRotatef(90, 1,0 , 0);
+        //gluCylinder(cepo, 80, 80, 50, 42, 42);
+    glPopMatrix();
+    //cabeca do prego
+    glPushMatrix();
+        glColor3f( 0.3, 0.35, 0.5 );
+        glTranslatef( 0.0, 5.0, 0.0 );
+        glScalef( 0.10, 0.2, 0.0 );
+        //glutSolidCube(10);
+        desenha_cilindro(20, 10, 90);
         //glRotatef(90, 1,0 , 0);
         //gluCylinder(cepo, 80, 80, 50, 42, 42);
     glPopMatrix();
@@ -256,7 +268,7 @@ void mouse( int button, int state, int x, int y )
 	if( button == GLUT_LEFT_BUTTON )
     {	
     	if(anguloMartelo == 45) clique = 0;
-    	if(anguloMartelo == 90) clique = 1;
+    	if(anguloMartelo == 90) {clique = 1;som=!som;}
     	/*
     	if(clique==0){
     		anguloMartelo=90;
@@ -295,44 +307,55 @@ void Timer(int value){
 			if(anguloMartelo <= 10){
 				anguloMartelo = 10;
 				flagBatida = true;	
+                   
 			}
 			if(flagBatida == true){ 
+                if(som==false){
+                    alSourcePlay(Sources[MARTELADA]);
+                    som = !som;
+                }
 				if(anguloMartelo>=10  && anguloMartelo <90){
 					anguloMartelo+=passo2;
 					passo2+=passo;
+                    
 				}
-				if(anguloMartelo > 90) anguloMartelo = 90;
-			}
+				if(anguloMartelo > 90){
+                    anguloMartelo = 90;
+                    batida = true;
+			     }
+            }
 		}
 		else if(clique == 1){
-
-			if(anguloMartelo <= 90) anguloMartelo-=passo;
-			if(anguloMartelo < 45) anguloMartelo = 45;
-			flagBatida = false;
-			passo2 = 25;
+            if(batida == false){
+    			if(anguloMartelo <= 90) anguloMartelo-=passo;
+    			if(anguloMartelo < 45) anguloMartelo = 45;
+                if(fade<0)fade = 1;
+                flagBatida = false;
+    			passo2 = 25;
+            }
 
 		}
 
 	glutTimerFunc(100,Timer, 0);
 	}
 	if(value == 1){
-		if(clique == 0){		
-			if(anguloMartelo == 90){
-					batida = true;
-					impacto+=passoExp;
-					passoExp++;
-					explosion+=passoExp/5;
-					fade -=0.05;
-				}
-				if(explosion >5) explosion = 5;
+		if(batida == true && fade>0){ 
+				impacto+=passoExp;
+				passoExp+=2;
+				explosion+=passoExp/10;
+				fade -=0.05;
 		}
+	
+    	if(explosion >15) explosion = 15;
+
 		if(fade <0){
+
 			batida  = false;
 
-			impacto = 0;
-			explosion = 0;
+			impacto = 5;
+			explosion = 2;
 			passoExp = 1;
-			fade = 1;
+			//fade = 1;
 		}
 
 		glutTimerFunc(100,Timer,1);
@@ -342,7 +365,13 @@ void Timer(int value){
 }
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
-{
+{   
+    alutInit(NULL, 0);
+    alGetError();
+    // Load the wav data.
+    if(LoadALData() == AL_FALSE) return 0;
+    SetListenerValues();
+
     glutInit( &argc, argv );
 	glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize( 450, 450 );

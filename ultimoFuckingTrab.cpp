@@ -23,7 +23,12 @@ int passo2 = 25;
 bool flagBatida = false, ldifusa=false,ambiente=false;
 GLfloat fAspect;
 GLUquadricObj *cepo;
-
+int impacto = 0;
+int explosion = 0;
+int passoExp = 1;
+bool batida = false;
+bool dissipou = true;
+float fade = 1;
 //-----------------------------------------------------------------------
 void desenha_circulo(float r){ //desenha centro na origem
     int NUM_LINHAS = 360;
@@ -51,6 +56,15 @@ void desenha_cilindro(float raio, float altura, float angulo){
     glPopMatrix();
 }
 //------------------------------------------------------------------------------
+void desenhaImpacto(){
+    glPushMatrix();
+    	glColor4f(1.0,0.5,0.0,fade);
+    	glRotatef(90,1,0,0);
+    	glTranslatef(0.0,-5.0,0.0);
+    	glutSolidTorus(explosion,impacto,50,50);
+    glPopMatrix();
+}
+//------------------------------------------------------------------------------
 
 void desenhaCenarioSolid()
 {
@@ -73,6 +87,12 @@ void desenhaCenarioSolid()
         //glRotatef(90, 1,0 , 0);
         //gluCylinder(cepo, 80, 80, 50, 42, 42);
     glPopMatrix();
+    //explosion
+
+	if(batida == true){
+		desenhaImpacto();
+	}    
+
     //corpo
       /* glPushMatrix();
             glColor3f( 0.5, 0.5, 0.5 );
@@ -193,6 +213,8 @@ void Inicializa (void)
 	glLightfv(GL_LIGHT0,GL_POSITION,posicao);
 	//glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
     glEnable(GL_LIGHTING);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable( GL_BLEND );
     //glEnable(GL_LIGHT0);
     //glEnable(GL_LIGHT1);
     glEnable(GL_COLOR_MATERIAL);
@@ -231,7 +253,7 @@ void motion( int x, int y )
 //-----------------------------------------------------------------------
 void mouse( int button, int state, int x, int y )
 {	
-	if( bot == GLUT_LEFT_BUTTON )
+	if( button == GLUT_LEFT_BUTTON )
     {	
     	if(anguloMartelo == 45) clique = 0;
     	if(anguloMartelo == 90) clique = 1;
@@ -247,7 +269,7 @@ void mouse( int button, int state, int x, int y )
     	glutPostRedisplay();
     	
     }
-    if( state == GLUT_DOWN )
+    if( button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN )
     {
         x_ini = x;
         y_ini = y;
@@ -293,6 +315,28 @@ void Timer(int value){
 
 	glutTimerFunc(100,Timer, 0);
 	}
+	if(value == 1){
+		if(clique == 0){		
+			if(anguloMartelo == 90){
+					batida = true;
+					impacto+=passoExp;
+					passoExp++;
+					explosion+=passoExp/5;
+					fade -=0.05;
+				}
+				if(explosion >5) explosion = 5;
+		}
+		if(fade <0){
+			batida  = false;
+
+			impacto = 0;
+			explosion = 0;
+			passoExp = 1;
+			fade = 1;
+		}
+
+		glutTimerFunc(100,Timer,1);
+	}
 
 	glutPostRedisplay();
 }
@@ -311,7 +355,7 @@ int main(int argc, char *argv[])
     glutMouseFunc( mouse );
     glutMotionFunc( motion );
     glutTimerFunc(100,Timer,0);
-
+	glutTimerFunc(100,Timer,1);
 	Inicializa();
 
 	glutMainLoop();

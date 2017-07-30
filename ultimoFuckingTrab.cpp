@@ -247,11 +247,9 @@ void motion( int x, int y )
         rotY = rotY_ini - deltax/SENS_ROT;
         rotX = rotX_ini - deltay/SENS_ROT;
 
-    }
-    else if( bot == GLUT_MIDDLE_BUTTON )
-    {
+    }else if( bot == GLUT_MIDDLE_BUTTON ){
         int deltaz = y_ini - y;
-        obsZ = obsZ_ini + deltaz/SENS_OBS;
+        obsZ = obsZ_ini + (deltaz/SENS_OBS);
     }
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
@@ -267,8 +265,14 @@ void mouse( int button, int state, int x, int y )
 {	
 	if( button == GLUT_LEFT_BUTTON )
     {	
-    	if(anguloMartelo == 45) clique = 0;
-    	if(anguloMartelo == 90) {clique = 1;som=!som;}
+    	if(anguloMartelo == 45){
+            clique = 0;
+            //som=!som;
+        }
+    	if(anguloMartelo == 90){
+            clique = 1;
+            som=!som;
+        }
     	/*
     	if(clique==0){
     		anguloMartelo=90;
@@ -281,7 +285,7 @@ void mouse( int button, int state, int x, int y )
     	glutPostRedisplay();
     	
     }
-    if( button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN )
+    if( (button == GLUT_RIGHT_BUTTON or button == GLUT_MIDDLE_BUTTON) && state == GLUT_DOWN )
     {
         x_ini = x;
         y_ini = y;
@@ -310,10 +314,6 @@ void Timer(int value){
                    
 			}
 			if(flagBatida == true){ 
-                if(som==false){
-                    alSourcePlay(Sources[MARTELADA]);
-                    som = !som;
-                }
 				if(anguloMartelo>=10  && anguloMartelo <90){
 					anguloMartelo+=passo2;
 					passo2+=passo;
@@ -340,6 +340,10 @@ void Timer(int value){
 	}
 	if(value == 1){
 		if(batida == true && fade>0){ 
+              if(som==false){
+                    alSourcePlay(Sources[MARTELADA]);
+                    som = !som;
+                }
 				impacto+=passoExp;
 				passoExp+=2;
 				explosion+=passoExp/10;
@@ -375,10 +379,10 @@ int main(int argc, char *argv[])
     glutInit( &argc, argv );
 	glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize( 450, 450 );
-	glutCreateWindow("Trabalho Final(Minecraft)");
+	glutCreateWindow("Full Power Gugu");
 
 	glutDisplayFunc( display );
-	glutMouseFunc( mouse );
+	//glutMouseFunc( mouse );
 	glutReshapeFunc( reshape );
 	glutKeyboardFunc( keyboard );
     glutMouseFunc( mouse );

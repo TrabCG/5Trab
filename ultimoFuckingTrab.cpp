@@ -24,7 +24,8 @@ float anguloMartelo =45 ;
 int clique=-1;
 int passo = 10;
 int passo2 = 25;
-bool flagBatida = false, ldifusa=false,ambiente=false,som=false;
+bool flagBatida = false, ldifusa=false,ambiente=false;
+int som=0;
 GLfloat fAspect;
 GLUquadricObj *cepo;
 int impacto = 5;
@@ -267,11 +268,13 @@ void mouse( int button, int state, int x, int y )
     {	
     	if(anguloMartelo == 45){
             clique = 0;
-            //som=!som;
+            if (som!=0)
+                som=0;
         }
     	if(anguloMartelo == 90){
             clique = 1;
-            som=!som;
+            if (som!=0)
+                som=0;;
         }
     	/*
     	if(clique==0){
@@ -306,6 +309,7 @@ void mouse( int button, int state, int x, int y )
 void Timer(int value){
 
 	if (value == 0){
+        //alSourcePlay(Sources[MARTELADA]);
 		if(clique == 0){
 			anguloMartelo-=passo;
 			if(anguloMartelo <= 10){
@@ -314,6 +318,10 @@ void Timer(int value){
                    
 			}
 			if(flagBatida == true){ 
+                if(som==0){
+                    alSourcePlay(Sources[MARTELADA]);
+                    som = 2;
+                }
 				if(anguloMartelo>=10  && anguloMartelo <90){
 					anguloMartelo+=passo2;
 					passo2+=passo;
@@ -340,10 +348,7 @@ void Timer(int value){
 	}
 	if(value == 1){
 		if(batida == true && fade>0){ 
-              if(som==false){
-                    alSourcePlay(Sources[MARTELADA]);
-                    som = !som;
-                }
+              
 				impacto+=passoExp;
 				passoExp+=2;
 				explosion+=passoExp/10;
@@ -370,6 +375,8 @@ void Timer(int value){
 //------------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {   
+
+    // Initialize OpenAL and clear the error bit.
     alutInit(NULL, 0);
     alGetError();
     // Load the wav data.
@@ -378,9 +385,8 @@ int main(int argc, char *argv[])
 
     glutInit( &argc, argv );
 	glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowSize( 450, 450 );
+	glutInitWindowSize( 400, 400 );
 	glutCreateWindow("Full Power Gugu");
-
 	glutDisplayFunc( display );
 	//glutMouseFunc( mouse );
 	glutReshapeFunc( reshape );
